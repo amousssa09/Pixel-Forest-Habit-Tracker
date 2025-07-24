@@ -3,930 +3,1155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pixel Forest Habit Tracker</title>
+    <title>Bosque de Hábitos - Gamificación Pixel Art</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Reset y estilos base */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            image-rendering: pixelated;
-            image-rendering: -moz-crisp-edges;
-            image-rendering: crisp-edges;
+            font-family: 'Courier New', monospace;
         }
-        
+
+        :root {
+            --primary: #4CAF50;
+            --secondary: #8BC34A;
+            --dark: #2E7D32;
+            --darker: #1B5E20;
+            --light: #C8E6C9;
+            --accent: #FFD54F;
+            --danger: #F44336;
+            --sky: #87CEEB;
+            --ground: #8BC34A;
+            --dirt: #A1887F;
+            --trunk: #795548;
+            --leaves: #4CAF50;
+            --fruit: #F44336;
+            --menu-width: 320px;
+            --pixel-size: 4px;
+        }
+
         body {
-            font-family: 'Press Start 2P', 'Courier New', monospace;
-            background: #2c3e50;
-            color: #ecf0f1;
+            background: var(--sky);
             min-height: 100vh;
+            color: var(--darker);
+            position: relative;
             overflow-x: hidden;
-            background-image: 
-                linear-gradient(rgba(0, 0, 0, 0.3) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 0, 0, 0.3) 1px, transparent 1px);
-            background-size: 20px 20px;
-            padding: 10px;
-        }
-        
-        /* Contenedor principal */
-        .game-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: #1a2a3a;
-            border: 4px solid #8b4513;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-            border-radius: 8px;
-            overflow: hidden;
             display: flex;
             flex-direction: column;
-            height: 95vh;
         }
-        
-        /* Cabecera pixel art */
-        .header {
-            background: linear-gradient(to bottom, #2c4b08, #1e3a0a);
-            padding: 15px;
-            text-align: center;
-            border-bottom: 4px solid #4a2c2a;
+
+        /* Estilos pixel art */
+        .pixel-border {
+            border: var(--pixel-size) solid var(--dark);
+            box-shadow: calc(var(--pixel-size) * 1.5) calc(var(--pixel-size) * 1.5) 0 var(--darker);
             position: relative;
-            z-index: 10;
+            background: rgba(255, 255, 255, 0.9);
         }
-        
-        .header h1 {
-            color: #f1c40f;
-            font-size: 24px;
-            text-shadow: 3px 3px 0 #7f6000;
-            margin-bottom: 10px;
-            letter-spacing: 2px;
+
+        .pixel-border::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px),
+                linear-gradient(0deg, rgba(0,0,0,0.05) 1px, transparent 1px);
+            background-size: 8px 8px;
+            pointer-events: none;
         }
-        
-        .header p {
-            color: #bdc3c7;
-            font-size: 12px;
-            max-width: 600px;
-            margin: 0 auto;
-            line-height: 1.5;
-        }
-        
-        /* Contenido principal con scroll */
-        .main-content {
+
+        /* Layout principal */
+        .app-container {
             display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
-        
-        /* Barra lateral */
-        .sidebar {
-            width: 300px;
-            background: linear-gradient(to bottom, #3a5f0b, #2c4b08);
-            border-right: 4px solid #4a2c2a;
-            padding: 15px;
-            overflow-y: auto;
-            transition: all 0.3s ease;
+            min-height: 100vh;
             position: relative;
-            z-index: 5;
+            padding: 20px;
         }
-        
-        .sidebar-section {
-            background: rgba(139, 69, 19, 0.8);
-            border: 3px solid #5a3c3a;
-            border-radius: 6px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .sidebar-title {
-            color: #f1c40f;
-            font-size: 14px;
-            margin-bottom: 15px;
-            text-align: center;
-            text-shadow: 2px 2px 0 #7f6000;
-        }
-        
-        /* Formulario */
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #ecf0f1;
-            font-size: 10px;
-        }
-        
-        .form-control {
-            width: 100%;
-            padding: 8px;
-            background: #f5f5dc;
-            border: 2px solid #5a3c3a;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-        }
-        
-        .habit-type {
-            display: flex;
-            justify-content: space-around;
-            margin: 10px 0;
-            gap: 10px;
-        }
-        
-        .type-btn {
-            padding: 8px 10px;
-            border: 2px solid #4a2c2a;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s;
-            text-align: center;
-            flex: 1;
-            font-size: 10px;
-        }
-        
-        .type-btn.good {
-            background: #27ae60;
-            color: #fff;
-        }
-        
-        .type-btn.bad {
-            background: #c0392b;
-            color: #fff;
-        }
-        
-        .type-btn.active {
-            transform: scale(1.05);
-            box-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
-        }
-        
-        .btn {
-            width: 100%;
-            padding: 10px;
-            background: #8B4513;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-            margin-top: 10px;
-            font-weight: bold;
-            border: 2px solid #5a3c3a;
-            transition: all 0.2s;
-            font-family: 'Press Start 2P', sans-serif;
-        }
-        
-        .btn:hover {
-            background: #A0522D;
-            transform: translateY(-2px);
-        }
-        
-        /* Lista de hábitos */
-        .habits-list {
-            max-height: 300px;
+
+        /* Menú lateral */
+        .menu-container {
+            width: var(--menu-width);
+            height: calc(100vh - 40px);
+            position: fixed;
+            top: 20px;
+            left: calc(-1 * var(--menu-width));
+            z-index: 100;
+            transition: transform 0.4s ease;
             overflow-y: auto;
+            padding: 20px;
+            background: linear-gradient(to bottom, var(--light), white);
         }
-        
-        .habit-item {
-            background: rgba(245, 245, 220, 0.9);
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-            border: 2px solid #5a3c3a;
+
+        .menu-container.active {
+            transform: translateX(var(--menu-width));
+        }
+
+        .menu-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--dark);
         }
-        
-        .habit-info {
-            flex-grow: 1;
+
+        .menu-header h2 {
+            font-size: 1.8rem;
+            color: var(--darker);
         }
-        
-        .habit-name {
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #2c3e50;
-            font-size: 12px;
-        }
-        
-        .habit-type-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 5px;
-        }
-        
-        .habit-type-indicator.good {
-            background: #27ae60;
-        }
-        
-        .habit-type-indicator.bad {
-            background: #c0392b;
-        }
-        
-        .streak-counter {
-            font-size: 10px;
-            color: #2c3e50;
-        }
-        
-        .complete-btn {
-            padding: 6px 10px;
-            background: #4a2c2a;
-            color: white;
+
+        .close-menu {
+            background: var(--danger);
             border: none;
-            border-radius: 4px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            color: white;
             cursor: pointer;
-            font-weight: bold;
-            font-size: 10px;
-            font-family: 'Press Start 2P', sans-serif;
-        }
-        
-        .complete-btn:hover {
-            background: #5a3c3a;
-        }
-        
-        /* Área del bosque con scroll */
-        .forest-area {
-            flex: 1;
-            background: #132a13;
-            position: relative;
-            overflow: auto;
+            font-size: 1.2rem;
             display: flex;
+            align-items: center;
             justify-content: center;
-            align-items: flex-start;
+            box-shadow: 3px 3px 0 var(--darker);
+        }
+
+        /* Botón de menú flotante */
+        .menu-toggle {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            z-index: 90;
+            background: var(--primary);
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 4px 4px 0 var(--darker);
+            transition: transform 0.3s;
+        }
+
+        .menu-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        /* Contenido principal */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: calc(100vh - 40px);
+            position: relative;
+            padding: 20px;
+            width: 100%;
+        }
+
+        /* Decoraciones de fondo */
+        .pixel-cloud {
+            position: absolute;
+            width: 120px;
+            height: 60px;
+            background-color: white;
+            border-radius: 50%;
+            z-index: -1;
+            opacity: 0.85;
+        }
+
+        .pixel-cloud::before,
+        .pixel-cloud::after {
+            content: '';
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+        }
+
+        .pixel-cloud::before {
+            width: 70px;
+            height: 70px;
+            top: -20px;
+            left: 15px;
+        }
+
+        .pixel-cloud::after {
+            width: 60px;
+            height: 60px;
+            top: -15px;
+            right: 15px;
+        }
+
+        .pixel-sun {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            width: 70px;
+            height: 70px;
+            background-color: #FFEB3B;
+            border-radius: 50%;
+            box-shadow: 0 0 0 6px rgba(255, 235, 59, 0.5);
+            z-index: -1;
+        }
+
+        .pixel-bush {
+            position: absolute;
+            bottom: 30px;
+            width: 140px;
+            height: 60px;
+            background-color: var(--secondary);
+            border-radius: 30px;
+            z-index: -1;
+        }
+
+        .pixel-bush::before,
+        .pixel-bush::after {
+            content: '';
+            position: absolute;
+            background-color: var(--secondary);
+            border-radius: 50%;
+        }
+
+        .pixel-bush::before {
+            width: 70px;
+            height: 70px;
+            top: -35px;
+            left: 15px;
+        }
+
+        .pixel-bush::after {
+            width: 60px;
+            height: 60px;
+            top: -30px;
+            right: 20px;
+        }
+
+        /* Área del árbol */
+        .tree-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
             padding: 20px;
         }
-        
-        .forest-container {
-            position: relative;
-            min-width: 800px;
-            min-height: 800px;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%232c4b08"/><path d="M0,50 Q50,40 100,50 L100,100 L0,100 Z" fill="%233a5f0b"/></svg>') center/cover;
-            border: 4px solid #4a2c2a;
-            border-radius: 8px;
-            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.7);
-        }
-        
-        /* Estadísticas */
-        .stats-container {
+
+        .tree-header {
             display: flex;
-            justify-content: space-around;
-            background: linear-gradient(to bottom, #2c4b08, #1e3a0a);
-            padding: 15px;
-            border-top: 4px solid #4a2c2a;
-            flex-wrap: wrap;
-            gap: 10px;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 20px;
         }
-        
-        .stat-box {
-            background: rgba(139, 69, 19, 0.8);
-            border: 3px solid #5a3c3a;
-            border-radius: 8px;
-            padding: 12px;
-            text-align: center;
-            min-width: 180px;
-        }
-        
-        .stat-box h3 {
-            color: #f1c40f;
-            font-size: 12px;
-            margin-bottom: 8px;
-            text-shadow: 2px 2px 0 #7f6000;
-        }
-        
-        .stat-value {
-            font-size: 20px;
+
+        .habit-name {
+            font-size: 2.2rem;
             font-weight: bold;
-            color: #fff;
-            text-shadow: 2px 2px 0 #000;
+            color: var(--darker);
+            text-align: center;
+            text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
+            flex: 1;
+            padding: 0 10px;
         }
-        
-        /* Tipos de árboles (Pixel Art) */
-        .tree {
-            position: absolute;
-            transform: translate(-50%, -100%);
+
+        .nav-btn {
+            background: var(--primary);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 4px 4px 0 var(--darker);
+            transition: transform 0.2s;
+            flex-shrink: 0;
         }
-        
-        /* Árbol 1 - Clásico */
-        .tree.classic {
-            width: 32px;
-            height: 48px;
+
+        .nav-btn:hover {
+            transform: translateY(-3px);
         }
-        
-        .tree.classic .trunk {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 8px;
-            height: 20px;
-            background: #8B4513;
+
+        .nav-btn:active {
+            transform: translateY(0);
         }
-        
-        .tree.classic .leaves {
-            position: absolute;
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 32px;
-            height: 32px;
-            background: #27ae60;
-            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+
+        /* Parcela con tierra y cielo */
+        .plot-container {
+            width: 100%;
+            max-width: 700px;
+            height: 500px;
+            background: linear-gradient(to bottom, var(--sky) 0%, var(--sky) 70%, var(--dirt) 70%, var(--dirt) 100%);
+            border: 8px solid #5D4037;
+            position: relative;
+            overflow: hidden;
+            margin: 20px 0;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
         }
-        
-        /* Árbol 2 - Pino */
-        .tree.pine {
-            width: 32px;
-            height: 64px;
+
+        .tree-canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
         }
-        
-        .tree.pine .trunk {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 6px;
-            height: 16px;
-            background: #8B4513;
+
+        canvas {
+            image-rendering: pixelated;
+            max-width: 100%;
+            max-height: 100%;
         }
-        
-        .tree.pine .leaves {
-            position: absolute;
-            bottom: 12px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 24px;
-            height: 48px;
-            background: #2ecc71;
-            clip-path: polygon(50% 0%, 20% 30%, 20% 60%, 50% 80%, 80% 60%, 80% 30%);
+
+        .tree-info {
+            margin: 20px 0;
+            text-align: center;
+            font-size: 1.4rem;
+            color: var(--darker);
+            font-weight: bold;
         }
-        
-        /* Árbol 3 - Roble */
-        .tree.oak {
+
+        .habit-type {
+            display: inline-block;
+            padding: 8px 25px;
+            background: var(--primary);
+            color: white;
+            border-radius: 30px;
+            font-weight: bold;
+            margin-top: 10px;
+            box-shadow: 4px 4px 0 var(--darker);
+            font-size: 1.2rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            padding: 15px;
+            width: 100%;
+            max-width: 700px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 18px 35px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 5px 5px 0 var(--darker);
+            transition: transform 0.2s, background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 220px;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-4px);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        .complete-btn {
+            background: var(--primary);
+            color: white;
+        }
+
+        .avoid-btn {
+            background: var(--accent);
+            color: var(--darker);
+        }
+
+        /* Formulario de hábitos */
+        .habit-form {
+            margin-top: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--darker);
+            font-size: 1.1rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 15px;
+            border: 4px solid var(--dark);
+            background: var(--light);
+            font-size: 1.1rem;
+        }
+
+        .add-btn {
+            width: 100%;
+            padding: 18px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            font-size: 1.4rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 5px 5px 0 var(--darker);
+            transition: transform 0.2s;
+            margin-top: 10px;
+        }
+
+        .add-btn:hover {
+            transform: translateY(-5px);
+        }
+
+        .add-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Lista de hábitos */
+        .habits-list {
+            margin-top: 30px;
+        }
+
+        .habits-list h3 {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid var(--dark);
+            font-size: 1.4rem;
+        }
+
+        .habit-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 3px solid var(--dark);
+            border-radius: 8px;
+        }
+
+        .habit-info {
+            flex: 1;
+        }
+
+        .habit-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 1.2rem;
+        }
+
+        .habit-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 1rem;
+            color: var(--darker);
+            flex-wrap: wrap;
+        }
+
+        .habit-level {
+            display: inline-block;
             width: 40px;
-            height: 56px;
+            height: 40px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-weight: bold;
+            font-size: 1.2rem;
         }
-        
-        .tree.oak .trunk {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 10px;
-            height: 24px;
-            background: #8B4513;
-        }
-        
-        .tree.oak .leaves {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
+
+        .delete-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
             width: 40px;
-            height: 36px;
-            background: #3498db;
+            height: 40px;
             border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 2px 2px 0 var(--darker);
         }
-        
-        /* Árbol 4 - Árbol Frutal */
-        .tree.fruit {
-            width: 36px;
-            height: 48px;
-        }
-        
-        .tree.fruit .trunk {
-            position: absolute;
-            bottom: 0;
+
+        /* Mensajes */
+        .messages {
+            position: fixed;
+            bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
-            width: 8px;
-            height: 20px;
-            background: #8B4513;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 40px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            font-weight: bold;
+            font-size: 1.2rem;
+            z-index: 100;
+            transition: opacity 0.3s;
+            opacity: 0;
+            pointer-events: none;
+            text-align: center;
+            min-width: 300px;
+            max-width: 80%;
         }
-        
-        .tree.fruit .leaves {
-            position: absolute;
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 36px;
-            height: 32px;
-            background: #9b59b6;
-            border-radius: 50%;
+
+        .messages.show {
+            opacity: 1;
         }
-        
-        .tree.fruit .fruit {
-            position: absolute;
-            width: 6px;
-            height: 6px;
-            background: #e74c3c;
-            border-radius: 50%;
+
+        /* Pie de página */
+        .footer {
+            text-align: center;
+            color: var(--darker);
+            font-size: 1rem;
+            padding: 15px;
+            margin-top: auto;
         }
-        
-        .tree.fruit .fruit:nth-child(3) { top: 10px; left: 10px; }
-        .tree.fruit .fruit:nth-child(4) { top: 5px; left: 20px; }
-        .tree.fruit .fruit:nth-child(5) { top: 15px; right: 10px; }
-        
-        /* Árbol 5 - Palmera */
-        .tree.palm {
-            width: 24px;
-            height: 72px;
-        }
-        
-        .tree.palm .trunk {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 6px;
-            height: 48px;
-            background: #8B4513;
-        }
-        
-        .tree.palm .leaves {
-            position: absolute;
-            bottom: 44px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 24px;
-            height: 24px;
-            background: #f1c40f;
-            clip-path: polygon(50% 0%, 0% 100%, 20% 100%, 50% 40%, 80% 100%, 100% 100%);
-        }
-        
-        /* Decoraciones adicionales */
-        .bush {
-            position: absolute;
-            width: 24px;
-            height: 12px;
-            background: #2ecc71;
-            border-radius: 50%;
-        }
-        
-        .rock {
-            position: absolute;
-            width: 16px;
-            height: 12px;
-            background: #7f8c8d;
-            border-radius: 4px;
-        }
-        
+
         /* Responsive */
         @media (max-width: 900px) {
-            .main-content {
+            .plot-container {
+                height: 400px;
+            }
+            
+            .habit-name {
+                font-size: 1.8rem;
+            }
+            
+            .controls {
                 flex-direction: column;
+                gap: 15px;
             }
             
-            .sidebar {
-                width: 100%;
-                border-right: none;
-                border-bottom: 4px solid #4a2c2a;
-                max-height: 300px;
+            .control-btn {
+                padding: 16px 25px;
+                font-size: 1.2rem;
+                min-width: 200px;
             }
             
-            .forest-area {
-                min-height: 500px;
+            .habit-type {
+                font-size: 1.1rem;
+                padding: 7px 20px;
             }
             
-            .forest-container {
-                min-width: 95%;
-                min-height: 500px;
+            .menu-toggle {
+                top: 20px;
+                left: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
             }
         }
         
         @media (max-width: 600px) {
-            .stats-container {
-                flex-direction: column;
-                align-items: center;
+            .plot-container {
+                height: 350px;
             }
             
-            .stat-box {
-                width: 90%;
+            .habit-name {
+                font-size: 1.5rem;
             }
             
-            .header h1 {
-                font-size: 18px;
+            .tree-info {
+                font-size: 1.1rem;
+            }
+            
+            .nav-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+            
+            .control-btn {
+                padding: 14px 20px;
+                font-size: 1.1rem;
+                min-width: 180px;
+            }
+            
+            .app-container {
+                padding: 10px;
+            }
+            
+            .tree-display {
+                padding: 10px;
             }
         }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="game-container">
-        <!-- Cabecera -->
-        <div class="header">
-            <h1>PIXEL FOREST HABIT TRACKER</h1>
-            <p>Completa hábitos buenos para hacer crecer tu bosque, hábitos malos lo dañarán</p>
+    <div class="app-container">
+        <!-- Menú lateral -->
+        <div class="menu-container pixel-border" id="menu">
+            <div class="menu-header">
+                <h2>🌱 Bosque de Hábitos</h2>
+                <button class="close-menu" id="close-menu">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="habit-form">
+                <h3>Añadir Nuevo Hábito</h3>
+                <div class="form-group">
+                    <label for="habit-name">Nombre del hábito:</label>
+                    <input type="text" id="habit-name" placeholder="Ej: Hacer ejercicio">
+                </div>
+                
+                <div class="form-group">
+                    <label for="habit-type">Tipo de hábito:</label>
+                    <select id="habit-type">
+                        <option value="good">Buen hábito (haz crecer un árbol)</option>
+                        <option value="bad">Mal hábito (protege un árbol)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="habit-frequency">Frecuencia:</label>
+                    <select id="habit-frequency">
+                        <option value="daily">Diario</option>
+                        <option value="weekly">Semanal</option>
+                        <option value="monthly">Mensual</option>
+                    </select>
+                </div>
+                
+                <button class="add-btn" id="add-habit">
+                    <i class="fas fa-plus"></i> Añadir Hábito
+                </button>
+            </div>
+            
+            <div class="habits-list">
+                <h3>Tus Hábitos</h3>
+                <div id="habits-container">
+                    <!-- Hábitos se añadirán aquí -->
+                </div>
+            </div>
         </div>
+        
+        <!-- Botón para abrir menú -->
+        <button class="menu-toggle" id="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
         
         <!-- Contenido principal -->
         <div class="main-content">
-            <!-- Barra lateral -->
-            <div class="sidebar">
-                <div class="sidebar-section">
-                    <h3 class="sidebar-title">CREAR NUEVO HÁBITO</h3>
-                    <div class="form-group">
-                        <label for="habit-name">NOMBRE DEL HÁBITO</label>
-                        <input type="text" id="habit-name" class="form-control" placeholder="Ej: Meditar 10 minutos">
+            <!-- Decoraciones de fondo -->
+            <div class="pixel-cloud" style="top: 10%; left: 10%;"></div>
+            <div class="pixel-cloud" style="top: 15%; right: 15%;"></div>
+            <div class="pixel-cloud" style="top: 30%; left: 25%;"></div>
+            <div class="pixel-sun"></div>
+            <div class="pixel-bush" style="left: 5%;"></div>
+            <div class="pixel-bush" style="right: 8%;"></div>
+            
+            <div class="tree-display">
+                <div class="tree-header">
+                    <button class="nav-btn" id="prev-habit">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    
+                    <div class="habit-name" id="current-habit-name">
+                        Tu Bosque de Hábitos
                     </div>
                     
-                    <div class="form-group">
-                        <label>TIPO DE HÁBITO</label>
-                        <div class="habit-type">
-                            <div class="type-btn good active" data-type="good">BUENO</div>
-                            <div class="type-btn bad" data-type="bad">MALO</div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="habit-frequency">FRECUENCIA</label>
-                        <select id="habit-frequency" class="form-control">
-                            <option value="daily">DIARIO</option>
-                            <option value="weekly">SEMANAL</option>
-                            <option value="monthly">MENSUAL</option>
-                        </select>
-                    </div>
-                    
-                    <button id="add-habit" class="btn">AÑADIR HÁBITO</button>
+                    <button class="nav-btn" id="next-habit">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
                 </div>
                 
-                <div class="sidebar-section">
-                    <h3 class="sidebar-title">TUS HÁBITOS</h3>
-                    <div id="habits-list" class="habits-list">
-                        <!-- Hábitos se añadirán aquí dinámicamente -->
+                <!-- Parcela con tierra y cielo -->
+                <div class="plot-container pixel-border">
+                    <div class="tree-canvas-container">
+                        <canvas id="tree-canvas" width="700" height="700"></canvas>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Área del bosque con scroll -->
-            <div class="forest-area" id="forest-area">
-                <div class="forest-container" id="forest-container">
-                    <!-- Árboles y elementos se añadirán aquí dinámicamente -->
+                
+                <div class="tree-info">
+                    <div id="tree-message">Crea tu primer hábito para comenzar</div>
+                    <div class="habit-type" id="habit-type-display">-</div>
+                </div>
+                
+                <div class="controls">
+                    <button class="control-btn complete-btn" id="complete-btn">
+                        <i class="fas fa-check-circle"></i> Completar
+                    </button>
+                    <button class="control-btn avoid-btn" id="avoid-btn">
+                        <i class="fas fa-times-circle"></i> Evitar
+                    </button>
                 </div>
             </div>
+            
+            <div class="footer">
+                <p>🌳 Cultiva buenos hábitos, elimina los malos y haz crecer tu bosque 🌳</p>
+            </div>
         </div>
         
-        <!-- Estadísticas -->
-        <div class="stats-container">
-            <div class="stat-box">
-                <h3>HÁBITOS COMPLETADOS</h3>
-                <div class="stat-value" id="total-completed">0</div>
-            </div>
-            
-            <div class="stat-box">
-                <h3>RACHA ACTUAL</h3>
-                <div class="stat-value" id="current-streak">0 días</div>
-            </div>
-            
-            <div class="stat-box">
-                <h3>ÁRBOLES EN EL BOSQUE</h3>
-                <div class="stat-value" id="tree-count">0</div>
-            </div>
-            
-            <div class="stat-box">
-                <h3>HÁBITOS ACTIVOS</h3>
-                <div class="stat-value" id="active-habits">0</div>
-            </div>
-        </div>
+        <!-- Mensajes flotantes -->
+        <div class="messages" id="messages"></div>
     </div>
-    
+
     <script>
-        // Estado de la aplicación
-        const state = {
-            habits: JSON.parse(localStorage.getItem('habits')) || [],
-            trees: JSON.parse(localStorage.getItem('trees')) || [],
-            decorations: JSON.parse(localStorage.getItem('decorations')) || [],
-            totalCompleted: parseInt(localStorage.getItem('totalCompleted')) || 0,
-            currentStreak: parseInt(localStorage.getItem('currentStreak')) || 0,
-            lastCompletedDate: localStorage.getItem('lastCompletedDate') || '',
-            selectedHabitType: 'good'
-        };
+        // Datos de la aplicación
+        let habits = JSON.parse(localStorage.getItem('habits')) || [];
+        let currentHabitIndex = 0;
+        const today = new Date().toDateString();
         
         // Referencias DOM
-        const DOM = {
-            habitName: document.getElementById('habit-name'),
-            habitTypeBtns: document.querySelectorAll('.type-btn'),
-            addHabitBtn: document.getElementById('add-habit'),
-            habitsList: document.getElementById('habits-list'),
-            forestContainer: document.getElementById('forest-container'),
-            totalCompleted: document.getElementById('total-completed'),
-            currentStreak: document.getElementById('current-streak'),
-            treeCount: document.getElementById('tree-count'),
-            activeHabits: document.getElementById('active-habits')
-        };
+        const menu = document.getElementById('menu');
+        const menuToggle = document.getElementById('menu-toggle');
+        const closeMenu = document.getElementById('close-menu');
+        const habitForm = document.getElementById('add-habit');
+        const habitsContainer = document.getElementById('habits-container');
+        const prevBtn = document.getElementById('prev-habit');
+        const nextBtn = document.getElementById('next-habit');
+        const habitNameEl = document.getElementById('current-habit-name');
+        const habitTypeEl = document.getElementById('habit-type-display');
+        const treeCanvas = document.getElementById('tree-canvas');
+        const completeBtn = document.getElementById('complete-btn');
+        const avoidBtn = document.getElementById('avoid-btn');
+        const messagesEl = document.getElementById('messages');
+        const treeMessage = document.getElementById('tree-message');
         
-        // Tipos de árboles disponibles
-        const treeTypes = ['classic', 'pine', 'oak', 'fruit', 'palm'];
+        // Contexto del canvas
+        const ctx = treeCanvas.getContext('2d');
         
-        // Inicializar la aplicación
+        // Inicializar
+        init();
+        
+        // Event Listeners
+        menuToggle.addEventListener('click', () => {
+            menu.classList.add('active');
+        });
+        
+        closeMenu.addEventListener('click', () => {
+            menu.classList.remove('active');
+        });
+        
+        habitForm.addEventListener('click', addHabit);
+        
+        prevBtn.addEventListener('click', () => {
+            if (habits.length === 0) return;
+            currentHabitIndex = (currentHabitIndex - 1 + habits.length) % habits.length;
+            updateTreeDisplay();
+        });
+        
+        nextBtn.addEventListener('click', () => {
+            if (habits.length === 0) return;
+            currentHabitIndex = (currentHabitIndex + 1) % habits.length;
+            updateTreeDisplay();
+        });
+        
+        completeBtn.addEventListener('click', () => {
+            if (habits.length === 0) return;
+            completeHabit(habits[currentHabitIndex].id);
+        });
+        
+        avoidBtn.addEventListener('click', () => {
+            if (habits.length === 0) return;
+            avoidHabit(habits[currentHabitIndex].id);
+        });
+        
+        // Funciones de inicialización
         function init() {
-            renderHabits();
-            renderForest();
-            updateStats();
-            setupEventListeners();
-            checkStreak();
-            generateInitialDecorations();
+            renderHabitsList();
+            updateTreeDisplay();
+            
+            if (habits.length > 0) {
+                currentHabitIndex = 0;
+            }
         }
         
-        // Configurar event listeners
-        function setupEventListeners() {
-            // Selección de tipo de hábito
-            DOM.habitTypeBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    DOM.habitTypeBtns.forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    state.selectedHabitType = btn.dataset.type;
-                });
-            });
-            
-            // Añadir nuevo hábito
-            DOM.addHabitBtn.addEventListener('click', addHabit);
-            
-            // Permitir añadir hábito con Enter
-            DOM.habitName.addEventListener('keypress', e => {
-                if (e.key === 'Enter') addHabit();
-            });
-        }
-        
-        // Añadir nuevo hábito
+        // Funciones para manejar hábitos
         function addHabit() {
-            const name = DOM.habitName.value.trim();
+            const name = document.getElementById('habit-name').value;
+            const type = document.getElementById('habit-type').value;
             const frequency = document.getElementById('habit-frequency').value;
             
-            if (!name) return;
+            if (!name.trim()) {
+                showMessage('¡Ingresa un nombre para el hábito!', 'error');
+                return;
+            }
             
             const newHabit = {
                 id: Date.now(),
                 name,
-                type: state.selectedHabitType,
+                type,
                 frequency,
-                streak: 0,
-                lastCompleted: ''
+                level: type === 'good' ? 1 : 10,
+                lastUpdated: today,
+                progress: 0,
+                history: []
             };
             
-            state.habits.push(newHabit);
-            saveState();
-            renderHabits();
+            habits.push(newHabit);
+            saveHabits();
+            renderHabitsList();
+            updateTreeDisplay();
+            
+            // Cambiar al nuevo hábito
+            currentHabitIndex = habits.length - 1;
+            showMessage(`¡Nuevo hábito añadido: ${name}!`);
             
             // Resetear formulario
-            DOM.habitName.value = '';
-            DOM.habitName.focus();
+            document.getElementById('habit-name').value = '';
         }
         
-        // Completar hábito
+        function deleteHabit(habitId) {
+            habits = habits.filter(h => h.id !== habitId);
+            saveHabits();
+            renderHabitsList();
+            
+            if (habits.length === 0) {
+                updateTreeDisplay();
+            } else if (currentHabitIndex >= habits.length) {
+                currentHabitIndex = 0;
+                updateTreeDisplay();
+            }
+        }
+        
         function completeHabit(habitId) {
-            const habit = state.habits.find(h => h.id === habitId);
+            const habit = habits.find(h => h.id === habitId);
             if (!habit) return;
             
-            const today = new Date().toISOString().split('T')[0];
-            
             // Verificar si ya se completó hoy
-            if (habit.lastCompleted === today) return;
-            
-            // Actualizar hábito
-            habit.streak++;
-            habit.lastCompleted = today;
-            
-            // Actualizar bosque según tipo de hábito
-            if (habit.type === 'good') {
-                state.totalCompleted++;
-                
-                // Lógica de racha
-                const yesterday = new Date();
-                yesterday.setDate(yesterday.getDate() - 1);
-                const yesterdayStr = yesterday.toISOString().split('T')[0];
-                
-                if (state.lastCompletedDate === yesterdayStr || state.lastCompletedDate === today) {
-                    state.currentStreak++;
-                } else {
-                    state.currentStreak = 1;
-                }
-                
-                state.lastCompletedDate = today;
-                
-                // Añadir árbol al bosque
-                addTreeToForest();
-            } else {
-                // Hábitos malos eliminan árboles (pero no menos de 0)
-                if (state.trees.length > 0) {
-                    state.trees.pop();
-                }
-            }
-            
-            saveState();
-            renderHabits();
-            renderForest();
-            updateStats();
-        }
-        
-        // Añadir árbol al bosque
-        function addTreeToForest() {
-            // Seleccionar un tipo de árbol aleatorio
-            const treeType = treeTypes[Math.floor(Math.random() * treeTypes.length)];
-            
-            // Generar posición aleatoria (evitando bordes)
-            const x = 50 + Math.random() * (DOM.forestContainer.offsetWidth - 100);
-            const y = 100 + Math.random() * (DOM.forestContainer.offsetHeight - 200);
-            
-            // Crear nuevo árbol
-            const newTree = {
-                id: Date.now(),
-                type: treeType,
-                x,
-                y
-            };
-            
-            state.trees.push(newTree);
-            
-            // Ocasionalmente añadir decoración
-            if (Math.random() > 0.7) {
-                addDecoration(x, y);
-            }
-        }
-        
-        // Añadir decoración
-        function addDecoration(x, y) {
-            const types = ['bush', 'rock'];
-            const type = types[Math.floor(Math.random() * types.length)];
-            
-            // Posición relativa al árbol
-            const offsetX = (Math.random() - 0.5) * 80;
-            const offsetY = (Math.random() - 0.5) * 40;
-            
-            const newDecoration = {
-                id: Date.now(),
-                type,
-                x: x + offsetX,
-                y: y + offsetY + 30
-            };
-            
-            state.decorations.push(newDecoration);
-        }
-        
-        // Generar decoraciones iniciales
-        function generateInitialDecorations() {
-            if (state.decorations.length > 0) return;
-            
-            for (let i = 0; i < 10; i++) {
-                const type = Math.random() > 0.5 ? 'bush' : 'rock';
-                const x = 50 + Math.random() * (DOM.forestContainer.offsetWidth - 100);
-                const y = DOM.forestContainer.offsetHeight - 50 - Math.random() * 100;
-                
-                state.decorations.push({
-                    id: Date.now() + i,
-                    type,
-                    x,
-                    y
-                });
-            }
-            
-            saveState();
-        }
-        
-        // Verificar y actualizar racha
-        function checkStreak() {
-            if (!state.lastCompletedDate) return;
-            
-            const today = new Date();
-            const lastDate = new Date(state.lastCompletedDate);
-            const diffTime = Math.abs(today - lastDate);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
-            if (diffDays > 1) {
-                state.currentStreak = 0;
-                saveState();
-                updateStats();
-            }
-        }
-        
-        // Renderizar lista de hábitos
-        function renderHabits() {
-            DOM.habitsList.innerHTML = '';
-            
-            if (state.habits.length === 0) {
-                DOM.habitsList.innerHTML = '<p style="color:#ecf0f1; text-align:center; padding:10px; font-size:12px;">No hay hábitos registrados. ¡Añade uno para empezar!</p>';
+            if (habit.history.includes(today)) {
+                showMessage('¡Ya completaste este hábito hoy!', 'info');
                 return;
             }
             
-            state.habits.forEach(habit => {
-                const habitItem = document.createElement('div');
-                habitItem.className = 'habit-item';
-                habitItem.innerHTML = `
+            habit.history.push(today);
+            
+            if (habit.type === 'good') {
+                // Incrementar nivel para buenos hábitos
+                if (habit.level < 10) {
+                    habit.level++;
+                    showMessage('¡Buen trabajo! Tu árbol ha crecido un poco 🌱');
+                } else {
+                    // Reiniciar cuando llega al máximo
+                    habit.level = 1;
+                    showMessage('¡Tu árbol ha crecido completamente! Un nuevo árbol ha brotado 🌳');
+                }
+            } else {
+                // Decrementar nivel para malos hábitos
+                if (habit.level > 1) {
+                    habit.level--;
+                    showMessage('Oh no, has caído en un mal hábito 😔 Tu árbol se ha debilitado');
+                } else {
+                    // Reiniciar cuando muere
+                    habit.level = 10;
+                    showMessage('Tu árbol ha muerto por tus malos hábitos 😢 Un nuevo árbol ha aparecido');
+                }
+            }
+            
+            habit.lastUpdated = today;
+            saveHabits();
+            renderHabitsList();
+            updateTreeDisplay();
+        }
+        
+        function avoidHabit(habitId) {
+            const habit = habits.find(h => h.id === habitId);
+            if (!habit) return;
+            
+            if (habit.type === 'bad') {
+                // Para malos hábitos, evitar es positivo
+                if (habit.level < 10) {
+                    habit.level++;
+                    showMessage('¡Excelente! Has evitado un mal hábito. Tu árbol está más fuerte 💪');
+                }
+            } else {
+                // Para buenos hábitos, evitar es negativo
+                if (habit.level > 1) {
+                    habit.level--;
+                    showMessage('No completaste tu buen hábito hoy 😔 Tu árbol ha perdido fuerza');
+                }
+            }
+            
+            habit.lastUpdated = today;
+            saveHabits();
+            renderHabitsList();
+            updateTreeDisplay();
+        }
+        
+        // Funciones de renderizado
+        function renderHabitsList() {
+            if (habits.length === 0) {
+                habitsContainer.innerHTML = '<p>No tienes hábitos aún. ¡Añade uno para comenzar!</p>';
+                return;
+            }
+            
+            habitsContainer.innerHTML = '';
+            
+            habits.forEach(habit => {
+                const habitEl = document.createElement('div');
+                habitEl.className = 'habit-item';
+                habitEl.innerHTML = `
                     <div class="habit-info">
-                        <div class="habit-name">
-                            <span class="habit-type-indicator ${habit.type}"></span>
-                            ${habit.name}
+                        <div class="habit-title">${habit.name}</div>
+                        <div class="habit-meta">
+                            <span>${habit.type === 'good' ? '🌿 Bueno' : '🍂 Malo'}</span>
+                            <span>${getFrequencyText(habit.frequency)}</span>
+                            <span>Nivel: ${habit.level}</span>
                         </div>
-                        <div class="streak-counter">Racha: ${habit.streak} días | ${getFrequencyText(habit.frequency)}</div>
                     </div>
-                    <button class="complete-btn" data-id="${habit.id}">✓</button>
+                    <div class="habit-level">${habit.level}</div>
+                    <button class="delete-btn" onclick="deleteHabit(${habit.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 `;
                 
-                DOM.habitsList.appendChild(habitItem);
-            });
-            
-            // Añadir event listeners a los botones de completar
-            document.querySelectorAll('.complete-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const habitId = parseInt(btn.dataset.id);
-                    completeHabit(habitId);
-                });
+                habitsContainer.appendChild(habitEl);
             });
         }
         
-        // Obtener texto de frecuencia
-        function getFrequencyText(frequency) {
-            switch (frequency) {
-                case 'daily': return 'Diario';
-                case 'weekly': return 'Semanal';
-                case 'monthly': return 'Mensual';
-                default: return '';
+        function updateTreeDisplay() {
+            if (habits.length === 0) {
+                habitNameEl.textContent = 'Tu Bosque de Hábitos';
+                habitTypeEl.textContent = '-';
+                treeMessage.textContent = 'Crea tu primer hábito para comenzar';
+                drawEmptyForest();
+                return;
             }
+            
+            const habit = habits[currentHabitIndex];
+            habitNameEl.textContent = habit.name;
+            habitTypeEl.textContent = habit.type === 'good' ? 'Buen Hábito' : 'Mal Hábito';
+            treeMessage.textContent = `Nivel ${habit.level}/10`;
+            drawTree(habit.level, habit.type);
         }
         
-        // Renderizar bosque
-        function renderForest() {
-            DOM.forestContainer.innerHTML = '';
+        // Funciones para dibujar árboles con crecimiento realista
+        function drawTree(level, type) {
+            ctx.clearRect(0, 0, treeCanvas.width, treeCanvas.height);
             
-            // Renderizar decoraciones
-            state.decorations.forEach(decoration => {
-                const decElement = document.createElement('div');
-                decElement.className = decoration.type;
-                decElement.style.left = `${decoration.x}px`;
-                decElement.style.top = `${decoration.y}px`;
-                DOM.forestContainer.appendChild(decElement);
-            });
+            // Dibujar cielo
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, treeCanvas.width, treeCanvas.height * 0.7);
             
-            // Renderizar árboles
-            state.trees.forEach(tree => {
-                const treeElement = document.createElement('div');
-                treeElement.className = `tree ${tree.type}`;
-                treeElement.style.left = `${tree.x}px`;
-                treeElement.style.top = `${tree.y}px`;
+            // Dibujar tierra
+            ctx.fillStyle = '#8BC34A';
+            ctx.fillRect(0, treeCanvas.height * 0.7, treeCanvas.width, treeCanvas.height * 0.3);
+            
+            // Posición del árbol (centro de la parcela)
+            const treeX = treeCanvas.width / 2;
+            const treeBaseY = treeCanvas.height * 0.7; // Base en la tierra
+            
+            // Tamaño proporcional al nivel
+            const heightScale = 0.2 + (level / 12);
+            const widthScale = 0.2 + (level / 12);
+            
+            // Color del tronco
+            ctx.fillStyle = type === 'good' ? '#795548' : '#5D4037';
+            
+            // Altura del tronco (crece con el nivel)
+            const trunkHeight = 150 * heightScale;
+            const trunkWidth = 25 * widthScale;
+            
+            // Dibujar tronco
+            ctx.fillRect(treeX - trunkWidth/2, treeBaseY - trunkHeight, trunkWidth, trunkHeight);
+            
+            // Copa del árbol - depende del nivel
+            ctx.fillStyle = type === 'good' ? '#4CAF50' : '#2E7D32';
+            
+            // Crecimiento progresivo del árbol
+            if (level <= 3) {
+                // Planta pequeña
+                drawLeafLayer(treeX, treeBaseY - trunkHeight, 40 * widthScale, true);
+            } else if (level <= 6) {
+                // Árbol joven
+                drawLeafLayer(treeX, treeBaseY - trunkHeight - 30, 80 * widthScale, true);
+                drawLeafLayer(treeX, treeBaseY - trunkHeight - 80, 60 * widthScale, true);
+            } else {
+                // Árbol maduro
+                drawLeafLayer(treeX, treeBaseY - trunkHeight - 50, 120 * widthScale, true);
+                drawLeafLayer(treeX, treeBaseY - trunkHeight - 120, 100 * widthScale, true);
+                drawLeafLayer(treeX, treeBaseY - trunkHeight - 190, 80 * widthScale, true);
                 
-                // Crear estructura del árbol según tipo
-                let treeHTML = '';
-                switch (tree.type) {
-                    case 'classic':
-                        treeHTML = `
-                            <div class="leaves"></div>
-                            <div class="trunk"></div>
-                        `;
-                        break;
-                    case 'pine':
-                        treeHTML = `
-                            <div class="leaves"></div>
-                            <div class="trunk"></div>
-                        `;
-                        break;
-                    case 'oak':
-                        treeHTML = `
-                            <div class="leaves"></div>
-                            <div class="trunk"></div>
-                        `;
-                        break;
-                    case 'fruit':
-                        treeHTML = `
-                            <div class="leaves"></div>
-                            <div class="trunk"></div>
-                            <div class="fruit"></div>
-                            <div class="fruit"></div>
-                            <div class="fruit"></div>
-                        `;
-                        break;
-                    case 'palm':
-                        treeHTML = `
-                            <div class="leaves"></div>
-                            <div class="trunk"></div>
-                        `;
-                        break;
+                if (level >= 8) {
+                    drawLeafLayer(treeX, treeBaseY - trunkHeight - 260, 60 * widthScale, true);
                 }
                 
-                treeElement.innerHTML = treeHTML;
-                DOM.forestContainer.appendChild(treeElement);
-            });
+                if (level >= 9) {
+                    drawLeafLayer(treeX, treeBaseY - trunkHeight - 320, 50 * widthScale, true);
+                }
+            }
+            
+            // Ramas en niveles altos
+            if (level >= 4) {
+                drawBranch(treeX, treeBaseY - trunkHeight/2, 70 * widthScale, -30, level, type);
+                drawBranch(treeX, treeBaseY - trunkHeight/2, 70 * widthScale, 30, level, type);
+                
+                if (level >= 6) {
+                    drawBranch(treeX, treeBaseY - trunkHeight/1.5, 50 * widthScale, -45, level, type);
+                    drawBranch(treeX, treeBaseY - trunkHeight/1.5, 50 * widthScale, 45, level, type);
+                }
+                
+                if (level >= 8) {
+                    drawBranch(treeX, treeBaseY - trunkHeight/1.2, 40 * widthScale, -60, level, type);
+                    drawBranch(treeX, treeBaseY - trunkHeight/1.2, 40 * widthScale, 60, level, type);
+                }
+            }
+            
+            // Frutas en niveles altos
+            if (level >= 5) {
+                ctx.fillStyle = '#F44336';
+                drawFruit(treeX - 50 * widthScale, treeBaseY - trunkHeight - 30, 12 * widthScale);
+                drawFruit(treeX + 50 * widthScale, treeBaseY - trunkHeight - 50, 12 * widthScale);
+                
+                if (level >= 7) {
+                    drawFruit(treeX - 70 * widthScale, treeBaseY - trunkHeight - 100, 12 * widthScale);
+                    drawFruit(treeX + 70 * widthScale, treeBaseY - trunkHeight - 120, 12 * widthScale);
+                }
+                
+                if (level >= 9) {
+                    drawFruit(treeX - 90 * widthScale, treeBaseY - trunkHeight - 170, 12 * widthScale);
+                    drawFruit(treeX + 90 * widthScale, treeBaseY - trunkHeight - 190, 12 * widthScale);
+                    drawFruit(treeX, treeBaseY - trunkHeight - 230, 12 * widthScale);
+                }
+            }
+            
+            // Aplicar efecto pixel art
+            pixelateCanvas(treeCanvas);
         }
         
-        // Actualizar estadísticas
-        function updateStats() {
-            DOM.totalCompleted.textContent = state.totalCompleted;
-            DOM.currentStreak.textContent = `${state.currentStreak} días`;
-            DOM.treeCount.textContent = state.trees.length;
-            DOM.activeHabits.textContent = state.habits.length;
+        function drawLeafLayer(x, y, size, visible) {
+            if (!visible) return;
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fill();
         }
         
-        // Guardar estado en localStorage
-        function saveState() {
-            localStorage.setItem('habits', JSON.stringify(state.habits));
-            localStorage.setItem('trees', JSON.stringify(state.trees));
-            localStorage.setItem('decorations', JSON.stringify(state.decorations));
-            localStorage.setItem('totalCompleted', state.totalCompleted);
-            localStorage.setItem('currentStreak', state.currentStreak);
-            localStorage.setItem('lastCompletedDate', state.lastCompletedDate);
+        function drawBranch(x, y, length, angle, level, type) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle * Math.PI/180);
+            
+            // Color de la rama
+            ctx.fillStyle = type === 'good' ? '#795548' : '#5D4037';
+            
+            // Dibujar rama
+            const branchWidth = 10 * (level/10);
+            ctx.fillRect(0, 0, length, branchWidth);
+            
+            // Hojas en la rama
+            ctx.fillStyle = type === 'good' ? '#4CAF50' : '#2E7D32';
+            const leafSize = 25 * (level/10);
+            drawLeafLayer(length - 15, branchWidth/2, leafSize, true);
+            drawLeafLayer(length/2, branchWidth/2, leafSize * 0.8, true);
+            
+            ctx.restore();
         }
         
-        // Inicializar la aplicación
-        document.addEventListener('DOMContentLoaded', init);
+        function drawFruit(x, y, size) {
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        function drawEmptyForest() {
+            ctx.clearRect(0, 0, treeCanvas.width, treeCanvas.height);
+            
+            // Dibujar cielo
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, treeCanvas.width, treeCanvas.height * 0.7);
+            
+            // Dibujar tierra
+            ctx.fillStyle = '#8BC34A';
+            ctx.fillRect(0, treeCanvas.height * 0.7, treeCanvas.width, treeCanvas.height * 0.3);
+            
+            // Mensaje
+            ctx.fillStyle = '#2E7D32';
+            ctx.font = '30px "Courier New", monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('Crea tu primer hábito', treeCanvas.width / 2, treeCanvas.height / 2 - 30);
+            ctx.fillText('para comenzar tu bosque', treeCanvas.width / 2, treeCanvas.height / 2 + 30);
+            
+            // Dibujar pequeñas semillas
+            ctx.fillStyle = '#4CAF50';
+            for (let i = 0; i < 5; i++) {
+                const x = 100 + i * 100;
+                const y = treeCanvas.height - 50;
+                ctx.beginPath();
+                ctx.arc(x, y, 10, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            pixelateCanvas(treeCanvas);
+        }
+        
+        function pixelateCanvas(canvas) {
+            const pixelSize = 4;
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            tempCanvas.width = canvas.width / pixelSize;
+            tempCanvas.height = canvas.height / pixelSize;
+            
+            tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, 
+                          0, 0, canvas.width, canvas.height);
+        }
+        
+        // Funciones auxiliares
+        function getFrequencyText(frequency) {
+            const texts = {
+                'daily': 'Diario',
+                'weekly': 'Semanal',
+                'monthly': 'Mensual'
+            };
+            return texts[frequency] || frequency;
+        }
+        
+        function showMessage(message, type = 'success') {
+            messagesEl.textContent = message;
+            messagesEl.className = 'messages show';
+            
+            switch (type) {
+                case 'error':
+                    messagesEl.style.backgroundColor = '#FFCDD2';
+                    messagesEl.style.color = '#B71C1C';
+                    break;
+                case 'info':
+                    messagesEl.style.backgroundColor = '#BBDEFB';
+                    messagesEl.style.color = '#0D47A1';
+                    break;
+                default:
+                    messagesEl.style.backgroundColor = '#C8E6C9';
+                    messagesEl.style.color = '#1B5E20';
+            }
+            
+            setTimeout(() => {
+                messagesEl.className = 'messages';
+            }, 3000);
+        }
+        
+        function saveHabits() {
+            localStorage.setItem('habits', JSON.stringify(habits));
+        }
+        
+        // Hacer funciones accesibles globalmente
+        window.deleteHabit = deleteHabit;
     </script>
 </body>
 </html>
