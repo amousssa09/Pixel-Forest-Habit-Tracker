@@ -406,6 +406,42 @@
             font-size: 1.1rem;
         }
 
+        .difficulty-selector {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .difficulty-btn {
+            flex: 1;
+            padding: 12px;
+            border: 3px solid var(--dark);
+            background: var(--light);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .difficulty-btn:hover {
+            background: var(--secondary);
+        }
+
+        .difficulty-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .difficulty-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 5px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
         .add-btn {
             width: 100%;
             padding: 18px;
@@ -635,6 +671,27 @@
                         <option value="monthly">Mensual</option>
                     </select>
                 </div>
+
+                <div class="form-group">
+                    <label>Nivel de dificultad deseado:</label>
+                    <div class="difficulty-selector">
+                        <button type="button" class="difficulty-btn" data-level="25">
+                            Fácil<br>
+                            <small>25 niveles</small>
+                        </button>
+                        <button type="button" class="difficulty-btn" data-level="50">
+                            Medio<br>
+                            <small>50 niveles</small>
+                        </button>
+                        <button type="button" class="difficulty-btn active" data-level="100">
+                            Difícil<br>
+                            <small>100 niveles</small>
+                        </button>
+                    </div>
+                    <div class="difficulty-info" id="difficulty-info">
+                        Difícil: Árbol gigante que crece lentamente. Cada acción suma menos progreso.
+                    </div>
+                </div>
                 
                 <button class="add-btn" id="add-habit">
                     <i class="fas fa-plus"></i> Añadir Hábito
@@ -714,6 +771,7 @@
         // Datos de la aplicación
         let habits = JSON.parse(localStorage.getItem('habits')) || [];
         let currentHabitIndex = 0;
+        let selectedDifficulty = 100;
         const today = new Date().toDateString();
         
         // Referencias DOM
@@ -731,9 +789,33 @@
         const avoidBtn = document.getElementById('avoid-btn');
         const messagesEl = document.getElementById('messages');
         const treeMessage = document.getElementById('tree-message');
+        const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+        const difficultyInfo = document.getElementById('difficulty-info');
         
         // Contexto del canvas
         const ctx = treeCanvas.getContext('2d');
+        
+        // Información de dificultad
+        const difficultyData = {
+            25: {
+                name: 'Fácil',
+                description: 'Árbol pequeño que crece rápidamente. Cada acción suma mucho progreso.',
+                growth: 4, // Puntos por acción
+                maxSize: 0.6 // Tamaño máximo del árbol
+            },
+            50: {
+                name: 'Medio',
+                description: 'Árbol mediano con crecimiento moderado. Progreso equilibrado.',
+                growth: 2,
+                maxSize: 0.8
+            },
+            100: {
+                name: 'Difícil',
+                description: 'Árbol gigante que crece lentamente. Cada acción suma menos progreso.',
+                growth: 1,
+                maxSize: 1.2
+            }
+        };
         
         // Inicializar
         init();
@@ -748,6 +830,15 @@
         });
         
         habitForm.addEventListener('click', addHabit);
+        
+        difficultyBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                difficultyBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedDifficulty = parseInt(btn.dataset.level);
+                updateDifficultyInfo();
+            });
+        });
         
         prevBtn.addEventListener('click', () => {
             if (habits.length === 0) return;
@@ -773,12 +864,27 @@
         
         // Funciones de inicialización
         function init() {
+            // Migrar hábitos existentes si no tienen maxLevel
+            habits.forEach(habit => {
+                if (!habit.maxLevel) {
+                    habit.maxLevel = 100;
+                    habit.currentPoints = habit.level || 1;
+                }
+            });
+            saveHabits();
+            
             renderHabitsList();
             updateTreeDisplay();
+            updateDifficultyInfo();
             
             if (habits.length > 0) {
                 currentHabitIndex = 0;
             }
+        }
+        
+        function updateDifficultyInfo() {
+            const info = difficultyData[selectedDifficulty];
+            difficultyInfo.textContent = info.description;
         }
         
         // Funciones para manejar hábitos
@@ -797,7 +903,8 @@
                 name,
                 type,
                 frequency,
-                level: type === 'good' ? 1 : 10,
+                maxLevel: selectedDifficulty,
+                currentPoints: type === 'good' ? 1 : selectedDifficulty,
                 lastUpdated: today,
                 progress: 0,
                 history: []
@@ -810,7 +917,7 @@
             
             // Cambiar al nuevo hábito
             currentHabitIndex = habits.length - 1;
-            showMessage(`¡Nuevo hábito añadido: ${name}!`);
+            showMessage(`¡Nuevo hábito añadido: ${name}! (${difficultyData[selectedDifficulty].name})`);
             
             // Resetear formulario
             document.getElementById('habit-name').value = '';
@@ -840,26 +947,25 @@
             }
             
             habit.history.push(today);
+            const growth = difficultyData[habit.maxLevel].growth;
             
             if (habit.type === 'good') {
-                // Incrementar nivel para buenos hábitos
-                if (habit.level < 10) {
-                    habit.level++;
-                    showMessage('¡Buen trabajo! Tu árbol ha crecido un poco 🌱');
-                } else {
-                    // Reiniciar cuando llega al máximo
-                    habit.level = 1;
+                // Incrementar puntos para buenos hábitos
+                habit.currentPoints += growth;
+                if (habit.currentPoints > habit.maxLevel) {
+                    habit.currentPoints = 1;
                     showMessage('¡Tu árbol ha crecido completamente! Un nuevo árbol ha brotado 🌳');
+                } else {
+                    showMessage(`¡Buen trabajo! Tu árbol ha crecido (+${growth} puntos) 🌱`);
                 }
             } else {
-                // Decrementar nivel para malos hábitos
-                if (habit.level > 1) {
-                    habit.level--;
-                    showMessage('Oh no, has caído en un mal hábito 😔 Tu árbol se ha debilitado');
-                } else {
-                    // Reiniciar cuando muere
-                    habit.level = 10;
+                // Decrementar puntos para malos hábitos (caer en el mal hábito)
+                habit.currentPoints -= growth;
+                if (habit.currentPoints < 1) {
+                    habit.currentPoints = habit.maxLevel;
                     showMessage('Tu árbol ha muerto por tus malos hábitos 😢 Un nuevo árbol ha aparecido');
+                } else {
+                    showMessage(`Oh no, has caído en un mal hábito 😔 Tu árbol se ha debilitado (-${growth} puntos)`);
                 }
             }
             
@@ -873,18 +979,22 @@
             const habit = habits.find(h => h.id === habitId);
             if (!habit) return;
             
+            const growth = difficultyData[habit.maxLevel].growth;
+            
             if (habit.type === 'bad') {
                 // Para malos hábitos, evitar es positivo
-                if (habit.level < 10) {
-                    habit.level++;
-                    showMessage('¡Excelente! Has evitado un mal hábito. Tu árbol está más fuerte 💪');
+                habit.currentPoints += growth;
+                if (habit.currentPoints > habit.maxLevel) {
+                    habit.currentPoints = habit.maxLevel;
                 }
+                showMessage(`¡Excelente! Has evitado un mal hábito. Tu árbol está más fuerte (+${growth} puntos) 💪`);
             } else {
                 // Para buenos hábitos, evitar es negativo
-                if (habit.level > 1) {
-                    habit.level--;
-                    showMessage('No completaste tu buen hábito hoy 😔 Tu árbol ha perdido fuerza');
+                habit.currentPoints -= growth;
+                if (habit.currentPoints < 1) {
+                    habit.currentPoints = 1;
                 }
+                showMessage(`No completaste tu buen hábito hoy 😔 Tu árbol ha perdido fuerza (-${growth} puntos)`);
             }
             
             habit.lastUpdated = today;
@@ -905,16 +1015,20 @@
             habits.forEach(habit => {
                 const habitEl = document.createElement('div');
                 habitEl.className = 'habit-item';
+                const progress = Math.round((habit.currentPoints / habit.maxLevel) * 100);
+                const difficultyName = difficultyData[habit.maxLevel].name;
+                
                 habitEl.innerHTML = `
                     <div class="habit-info">
                         <div class="habit-title">${habit.name}</div>
                         <div class="habit-meta">
                             <span>${habit.type === 'good' ? '🌿 Bueno' : '🍂 Malo'}</span>
                             <span>${getFrequencyText(habit.frequency)}</span>
-                            <span>Nivel: ${habit.level}</span>
+                            <span>${difficultyName} (${habit.maxLevel})</span>
+                            <span>${habit.currentPoints}/${habit.maxLevel} pts</span>
                         </div>
                     </div>
-                    <div class="habit-level">${habit.level}</div>
+                    <div class="habit-level">${progress}%</div>
                     <button class="delete-btn" onclick="deleteHabit(${habit.id})">
                         <i class="fas fa-trash"></i>
                     </button>
@@ -934,14 +1048,17 @@
             }
             
             const habit = habits[currentHabitIndex];
+            const progress = Math.round((habit.currentPoints / habit.maxLevel) * 100);
+            const difficultyName = difficultyData[habit.maxLevel].name;
+            
             habitNameEl.textContent = habit.name;
-            habitTypeEl.textContent = habit.type === 'good' ? 'Buen Hábito' : 'Mal Hábito';
-            treeMessage.textContent = `Nivel ${habit.level}/10`;
-            drawTree(habit.level, habit.type);
+            habitTypeEl.textContent = `${habit.type === 'good' ? 'Buen Hábito' : 'Mal Hábito'} - ${difficultyName}`;
+            treeMessage.textContent = `${habit.currentPoints}/${habit.maxLevel} puntos (${progress}%)`;
+            drawTree(habit.currentPoints, habit.maxLevel, habit.type);
         }
         
-        // Funciones para dibujar árboles con crecimiento realista
-        function drawTree(level, type) {
+        // Funciones para dibujar árboles con crecimiento dinámico
+        function drawTree(currentPoints, maxLevel, type) {
             ctx.clearRect(0, 0, treeCanvas.width, treeCanvas.height);
             
             // Dibujar cielo
@@ -956,78 +1073,82 @@
             const treeX = treeCanvas.width / 2;
             const treeBaseY = treeCanvas.height * 0.7; // Base en la tierra
             
-            // Tamaño proporcional al nivel
-            const heightScale = 0.2 + (level / 12);
-            const widthScale = 0.2 + (level / 12);
+            // Calcular progreso (0-1)
+            const progress = currentPoints / maxLevel;
+            
+            // Obtener configuración de dificultad
+            const config = difficultyData[maxLevel];
+            
+            // Escala base según la dificultad
+            const baseScale = 0.3 + (progress * 0.7); // De 30% a 100% del tamaño
+            const finalScale = baseScale * config.maxSize; // Aplicar multiplicador de tamaño máximo
             
             // Color del tronco
             ctx.fillStyle = type === 'good' ? '#795548' : '#5D4037';
             
-            // Altura del tronco (crece con el nivel)
-            const trunkHeight = 150 * heightScale;
-            const trunkWidth = 25 * widthScale;
+            // Dimensiones del tronco
+            const trunkHeight = Math.max(50, 200 * finalScale);
+            const trunkWidth = Math.max(15, 30 * finalScale);
             
             // Dibujar tronco
             ctx.fillRect(treeX - trunkWidth/2, treeBaseY - trunkHeight, trunkWidth, trunkHeight);
             
-            // Copa del árbol - depende del nivel
+            // Copa del árbol - color según tipo
             ctx.fillStyle = type === 'good' ? '#4CAF50' : '#2E7D32';
             
-            // Crecimiento progresivo del árbol
-            if (level <= 3) {
-                // Planta pequeña
-                drawLeafLayer(treeX, treeBaseY - trunkHeight, 40 * widthScale, true);
-            } else if (level <= 6) {
-                // Árbol joven
-                drawLeafLayer(treeX, treeBaseY - trunkHeight - 30, 80 * widthScale, true);
-                drawLeafLayer(treeX, treeBaseY - trunkHeight - 80, 60 * widthScale, true);
-            } else {
-                // Árbol maduro
-                drawLeafLayer(treeX, treeBaseY - trunkHeight - 50, 120 * widthScale, true);
-                drawLeafLayer(treeX, treeBaseY - trunkHeight - 120, 100 * widthScale, true);
-                drawLeafLayer(treeX, treeBaseY - trunkHeight - 190, 80 * widthScale, true);
+            // Número de capas basado en el progreso y dificultad
+            const totalLayers = Math.max(1, Math.floor(progress * (maxLevel / 10) + 1));
+            const layerSpacing = Math.max(40, 60 * finalScale);
+            
+            // Dibujar capas de hojas
+            for (let layer = 0; layer < totalLayers; layer++) {
+                const layerProgress = Math.min(1, (progress * totalLayers - layer));
+                if (layerProgress <= 0) continue;
                 
-                if (level >= 8) {
-                    drawLeafLayer(treeX, treeBaseY - trunkHeight - 260, 60 * widthScale, true);
-                }
+                const layerY = treeBaseY - trunkHeight - (layer * layerSpacing);
+                const layerSize = Math.max(30, (80 - layer * 10) * finalScale * layerProgress);
                 
-                if (level >= 9) {
-                    drawLeafLayer(treeX, treeBaseY - trunkHeight - 320, 50 * widthScale, true);
+                drawLeafLayer(treeX, layerY, layerSize, true);
+            }
+            
+            // Ramas para árboles más desarrollados
+            if (progress > 0.3) {
+                const numBranches = Math.floor(progress * 6);
+                for (let i = 0; i < numBranches; i++) {
+                    const branchY = treeBaseY - trunkHeight + (i * trunkHeight / (numBranches + 1));
+                    const branchLength = 40 + (finalScale * 40);
+                    const angle = (i % 2 === 0) ? -30 - (i * 10) : 30 + (i * 10);
+                    
+                    drawBranch(treeX, branchY, branchLength, angle, finalScale, type);
                 }
             }
             
-            // Ramas en niveles altos
-            if (level >= 4) {
-                drawBranch(treeX, treeBaseY - trunkHeight/2, 70 * widthScale, -30, level, type);
-                drawBranch(treeX, treeBaseY - trunkHeight/2, 70 * widthScale, 30, level, type);
-                
-                if (level >= 6) {
-                    drawBranch(treeX, treeBaseY - trunkHeight/1.5, 50 * widthScale, -45, level, type);
-                    drawBranch(treeX, treeBaseY - trunkHeight/1.5, 50 * widthScale, 45, level, type);
-                }
-                
-                if (level >= 8) {
-                    drawBranch(treeX, treeBaseY - trunkHeight/1.2, 40 * widthScale, -60, level, type);
-                    drawBranch(treeX, treeBaseY - trunkHeight/1.2, 40 * widthScale, 60, level, type);
-                }
-            }
-            
-            // Frutas en niveles altos
-            if (level >= 5) {
+            // Frutas para árboles muy desarrollados
+            if (progress > 0.6) {
                 ctx.fillStyle = '#F44336';
-                drawFruit(treeX - 50 * widthScale, treeBaseY - trunkHeight - 30, 12 * widthScale);
-                drawFruit(treeX + 50 * widthScale, treeBaseY - trunkHeight - 50, 12 * widthScale);
+                const numFruits = Math.floor((progress - 0.6) * 15);
                 
-                if (level >= 7) {
-                    drawFruit(treeX - 70 * widthScale, treeBaseY - trunkHeight - 100, 12 * widthScale);
-                    drawFruit(treeX + 70 * widthScale, treeBaseY - trunkHeight - 120, 12 * widthScale);
+                for (let i = 0; i < numFruits; i++) {
+                    const angle = (i * 360 / numFruits) * Math.PI / 180;
+                    const radius = 60 * finalScale;
+                    const fruitX = treeX + Math.cos(angle) * radius;
+                    const fruitY = treeBaseY - trunkHeight - 50 - Math.abs(Math.sin(angle)) * 100 * finalScale;
+                    const fruitSize = 8 + finalScale * 6;
+                    
+                    drawFruit(fruitX, fruitY, fruitSize);
                 }
-                
-                if (level >= 9) {
-                    drawFruit(treeX - 90 * widthScale, treeBaseY - trunkHeight - 170, 12 * widthScale);
-                    drawFruit(treeX + 90 * widthScale, treeBaseY - trunkHeight - 190, 12 * widthScale);
-                    drawFruit(treeX, treeBaseY - trunkHeight - 230, 12 * widthScale);
-                }
+            }
+            
+            // Efectos especiales para árboles de alta dificultad
+            if (maxLevel >= 100 && progress > 0.8) {
+                // Aura mágica
+                ctx.save();
+                ctx.globalAlpha = 0.3;
+                ctx.fillStyle = type === 'good' ? '#FFD700' : '#8E24AA';
+                ctx.beginPath();
+                ctx.arc(treeX, treeBaseY - trunkHeight/2, trunkHeight * 1.2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
             }
             
             // Aplicar efecto pixel art
@@ -1041,7 +1162,7 @@
             ctx.fill();
         }
         
-        function drawBranch(x, y, length, angle, level, type) {
+        function drawBranch(x, y, length, angle, scale, type) {
             ctx.save();
             ctx.translate(x, y);
             ctx.rotate(angle * Math.PI/180);
@@ -1050,14 +1171,14 @@
             ctx.fillStyle = type === 'good' ? '#795548' : '#5D4037';
             
             // Dibujar rama
-            const branchWidth = 10 * (level/10);
+            const branchWidth = Math.max(5, 12 * scale);
             ctx.fillRect(0, 0, length, branchWidth);
             
             // Hojas en la rama
             ctx.fillStyle = type === 'good' ? '#4CAF50' : '#2E7D32';
-            const leafSize = 25 * (level/10);
-            drawLeafLayer(length - 15, branchWidth/2, leafSize, true);
-            drawLeafLayer(length/2, branchWidth/2, leafSize * 0.8, true);
+            const leafSize = Math.max(15, 25 * scale);
+            drawLeafLayer(length - 10, branchWidth/2, leafSize, true);
+            drawLeafLayer(length/2, branchWidth/2, leafSize * 0.7, true);
             
             ctx.restore();
         }
@@ -1086,14 +1207,23 @@
             ctx.fillText('Crea tu primer hábito', treeCanvas.width / 2, treeCanvas.height / 2 - 30);
             ctx.fillText('para comenzar tu bosque', treeCanvas.width / 2, treeCanvas.height / 2 + 30);
             
-            // Dibujar pequeñas semillas
-            ctx.fillStyle = '#4CAF50';
-            for (let i = 0; i < 5; i++) {
-                const x = 100 + i * 100;
+            // Dibujar pequeñas semillas de diferentes tamaños
+            const seedSizes = [8, 12, 15]; // Representando diferentes dificultades
+            const seedColors = ['#81C784', '#4CAF50', '#2E7D32'];
+            
+            for (let i = 0; i < 3; i++) {
+                const x = 150 + i * 200;
                 const y = treeCanvas.height - 50;
+                ctx.fillStyle = seedColors[i];
                 ctx.beginPath();
-                ctx.arc(x, y, 10, 0, Math.PI * 2);
+                ctx.arc(x, y, seedSizes[i], 0, Math.PI * 2);
                 ctx.fill();
+                
+                // Etiquetas de dificultad
+                ctx.fillStyle = '#2E7D32';
+                ctx.font = '16px "Courier New", monospace';
+                const labels = ['Fácil', 'Medio', 'Difícil'];
+                ctx.fillText(labels[i], x, y + 35);
             }
             
             pixelateCanvas(treeCanvas);
